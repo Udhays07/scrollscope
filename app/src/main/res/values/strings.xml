@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ScrollScope</string>
+    <string name="a11y_label">ScrollScope reel counter</string>
+    <string name="a11y_description">Counts swipes in Instagram Reels and YouTube Shorts. Only timestamps are stored, on this phone. No reel content is read or saved.</string>
+</resources>
