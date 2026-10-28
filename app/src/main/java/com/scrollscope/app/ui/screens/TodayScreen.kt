@@ -1,5 +1,9 @@
 package com.scrollscope.app.ui.screens
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -87,7 +92,8 @@ fun TodayScreen(trackingOn: Boolean) {
                         Owl(mood, Modifier.size(120.dp))
                     }
                     Row(verticalAlignment = Alignment.Bottom) {
-                        Text("${ui.count}", fontSize = 57.sp, fontWeight = FontWeight.SemiBold, lineHeight = 57.sp)
+                        val shown by animateIntAsState(ui.count, tween(900, easing = FastOutSlowInEasing), label = "count")
+                        Text("$shown", fontSize = 57.sp, fontWeight = FontWeight.SemiBold, lineHeight = 57.sp)
                         Text(" / ${ui.limit}", fontSize = 20.sp, color = cs.onSurfaceVariant, modifier = Modifier.padding(bottom = 8.dp))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -121,12 +127,14 @@ private fun ProgressRing(count: Int, limit: Int, modifier: Modifier) {
         else -> cs.primary
     }
     val track = cs.surfaceContainerHighest
+    val fill = remember { Animatable(0f) }
+    LaunchedEffect(pct) { fill.animateTo(pct.coerceIn(0f, 1f), tween(1100, easing = FastOutSlowInEasing)) }
     Canvas(modifier) {
         val w = 16.dp.toPx()
         val inset = w / 2
         val arcSize = Size(size.width - w, size.height - w)
         drawArc(track, 0f, 360f, false, Offset(inset, inset), arcSize, style = Stroke(w))
-        drawArc(color, -90f, 360f * pct.coerceIn(0f, 1f), false, Offset(inset, inset), arcSize, style = Stroke(w, cap = StrokeCap.Round))
+        drawArc(color, -90f, 360f * fill.value, false, Offset(inset, inset), arcSize, style = Stroke(w, cap = StrokeCap.Round))
     }
 }
 

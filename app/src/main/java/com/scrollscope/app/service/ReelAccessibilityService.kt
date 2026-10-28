@@ -165,7 +165,7 @@ class ReelAccessibilityService : AccessibilityService(), OverlayActions {
         startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
-    override fun dumpTree() {
+    fun dumpTree() {
         val text = TreeDumper.dump(rootInActiveWindow)
         val stamp = SimpleDateFormat("MMdd-HHmmss", Locale.US).format(Date())
         val pkg = rootInActiveWindow?.packageName?.toString()?.substringAfterLast('.') ?: "unknown"

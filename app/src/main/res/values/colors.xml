@@ -1,5 +1,5 @@
 <resources>
-    <color name="surface">#FF1A120E</color>
-    <color name="surface_container">#FF271E19</color>
-    <color name="ic_launcher_background">#FF2E1D13</color>
+    <color name="surface">#FF000000</color>
+    <color name="surface_container">#FF121212</color>
+    <color name="ic_launcher_background">#FF161616</color>
 </resources>

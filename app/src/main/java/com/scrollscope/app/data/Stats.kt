@@ -16,7 +16,13 @@ data class TodayUi(
     val watchMs: Long = 0,
 )
 
-data class DayValue(val date: LocalDate, val count: Int)
+data class DayValue(
+    val date: LocalDate,
+    val count: Int,
+    val dwellMs: Long = 0,
+    val sessions: Int = 0,
+    val peakHour: Int? = null,
+)
 
 data class TrendsUi(
     val days: List<DayValue> = emptyList(),
@@ -62,22 +68,36 @@ object Stats {
 
     fun trends(range: Int): Flow<TrendsUi> = Days.todayFlow().flatMapLatest { key ->
         val today = LocalDate.parse(key)
-        val from = today.minusDays((2L * range) - 1)
-        combine(dao.dailyStats(from.toString()), app.settings.flow) { stats, s ->
+        val from = today.minusDays((2L * range) - 1).toString()
+        combine(
+            dao.dailyStats(from),
+            dao.sessionCounts(from),
+            dao.hourStats(from),
+            app.settings.flow,
+        ) { stats, sessions, hours, s ->
             val byDay = stats.associateBy { it.day }
+            val sessByDay = sessions.associate { it.day to it.count }
+            val peakByDay = hours.groupBy { it.day }
+                .mapValues { (_, hs) -> hs.maxByOrNull { it.count }?.hour }
             val days = (range - 1 downTo 0).map { back ->
                 val d = today.minusDays(back.toLong())
-                DayValue(d, byDay[d.toString()]?.count ?: 0)
+                val k = d.toString()
+                DayValue(
+                    date = d,
+                    count = byDay[k]?.count ?: 0,
+                    dwellMs = byDay[k]?.dwellMs ?: 0,
+                    sessions = sessByDay[k] ?: 0,
+                    peakHour = peakByDay[k],
+                )
             }
             val prev = (2 * range - 1 downTo range).sumOf { back ->
                 byDay[today.minusDays(back.toLong()).toString()]?.count ?: 0
             }
-            val firstDay = days.first().date.toString()
             TrendsUi(
                 days = days,
                 total = days.sumOf { it.count },
                 prevTotal = prev,
-                watchMs = stats.filter { it.day >= firstDay }.sumOf { it.dwellMs },
+                watchMs = days.sumOf { it.dwellMs },
                 limit = s.dailyLimit,
             )
         }
