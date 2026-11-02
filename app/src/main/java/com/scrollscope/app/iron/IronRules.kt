@@ -7,7 +7,7 @@ import com.scrollscope.app.util.Format
 enum class LockReason { Night, Limit }
 
 /**
- * Iron Owl's rules, kept free of Android so they're easy to reason about.
+ * Iron Hoot's rules, kept free of Android so they're easy to reason about.
  * Only Reels/Shorts player time counts toward an app's limit; once the limit
  * is hit the whole app locks for the rest of the day. Outside open hours both
  * apps lock regardless, and the emergency pass doesn't apply at night.
@@ -51,9 +51,13 @@ object IronRules {
         else -> null
     }
 
-    /** True while any app is locked. Settings can then only get stricter. */
-    fun anyLocked(minuteOfDay: Int, snap: IronSnapshot, now: Long, s: AppSettings): Boolean =
-        APPS.any { lockReason(it, minuteOfDay, snap.watched(it), snap.passActive(now), s) != null }
+    /**
+     * True while Iron Hoot holds on: during the night hours, or once any app has
+     * used up today's limit (the emergency pass doesn't count as time back).
+     * Switching back to Hoot is refused and settings can only get stricter.
+     */
+    fun holdsOn(minuteOfDay: Int, snap: IronSnapshot, s: AppSettings): Boolean =
+        s.ironEnabled && (isNight(minuteOfDay, s.openHour, s.closeHour) || APPS.any { snap.watched(it) >= limitMs(it, s) })
 
     fun appLabel(pkg: String) = if (pkg == Apps.YOUTUBE) "YouTube" else "Instagram"
     fun feedLabel(pkg: String) = if (pkg == Apps.YOUTUBE) "Shorts" else "Reels"

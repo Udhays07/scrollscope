@@ -1,6 +1,7 @@
 package com.scrollscope.app.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +28,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.scrollscope.app.ui.morph.ArrivingIronAvatar
 import com.scrollscope.app.ui.theme.HootColors
+import com.scrollscope.app.ui.theme.IronColors
+import com.scrollscope.app.ui.theme.LocalIron
 
 @Composable
 fun HootTopBar(title: String, mood: Mood = Mood.Awake, actions: @Composable RowScope.() -> Unit = {}) {
@@ -36,7 +40,7 @@ fun HootTopBar(title: String, mood: Mood = Mood.Awake, actions: @Composable RowS
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        OwlAvatar(mood, 40.dp)
+        if (LocalIron.current) ArrivingIronAvatar(40.dp) else OwlAvatar(mood, 40.dp)
         Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
         actions()
     }
@@ -73,15 +77,33 @@ fun StatTile(icon: ImageVector, value: String, label: String, tint: Color, modif
 
 @Composable
 fun StatusChip(on: Boolean) {
-    val bg = if (on) HootColors.GoodContainer else HootColors.BadContainer
-    val fg = if (on) HootColors.Good else MaterialTheme.colorScheme.error
+    val iron = on && LocalIron.current
+    val bg = when {
+        iron -> IronColors.I800
+        on -> HootColors.GoodContainer
+        else -> HootColors.BadContainer
+    }
+    val fg = when {
+        iron -> IronColors.I200
+        on -> HootColors.Good
+        else -> MaterialTheme.colorScheme.error
+    }
     Row(
-        Modifier.clip(RoundedCornerShape(8.dp)).background(bg).padding(horizontal = 12.dp, vertical = 6.dp),
+        Modifier.clip(RoundedCornerShape(8.dp)).background(bg)
+            .then(if (iron) Modifier.border(1.dp, IronColors.I700, RoundedCornerShape(8.dp)) else Modifier)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Box(Modifier.size(8.dp).clip(CircleShape).background(fg))
-        Text(if (on) "Running" else "Off", color = fg, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        Box(Modifier.size(8.dp).clip(CircleShape).background(if (iron) IronColors.Ember else fg))
+        Text(
+            when {
+                iron -> "Iron Hoot"
+                on -> "Running"
+                else -> "Off"
+            },
+            color = fg, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 

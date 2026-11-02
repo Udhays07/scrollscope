@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,13 +31,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.scrollscope.app.ui.screens.DebugScreen
 import com.scrollscope.app.ui.screens.InsightsScreen
 import com.scrollscope.app.ui.screens.OnboardingScreen
 import com.scrollscope.app.ui.screens.SettingsScreen
 import com.scrollscope.app.ui.screens.TodayScreen
 import com.scrollscope.app.ui.screens.TrendsScreen
-import com.scrollscope.app.ui.theme.ScrollScopeTheme
+import com.scrollscope.app.ui.morph.IronMorphHost
+import com.scrollscope.app.ui.morph.LocalSnack
 import com.scrollscope.app.util.Permissions
 
 class MainActivity : ComponentActivity() {
@@ -44,7 +47,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ScrollScopeTheme {
+            val s by ScrollScopeApp.instance.settingsState.collectAsStateWithLifecycle()
+            IronMorphHost(iron = s.ironEnabled) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) { AppRoot() }
             }
         }
@@ -86,6 +90,7 @@ private fun MainScaffold(trackingOn: Boolean) {
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
+        snackbarHost = { SnackbarHost(LocalSnack.current) },
         bottomBar = {
             NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                 Tabs.forEachIndexed { i, t ->

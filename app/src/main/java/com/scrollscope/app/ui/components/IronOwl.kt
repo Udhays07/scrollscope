@@ -94,7 +94,7 @@ fun IronOwl(
     val strain by animateFloatAsState(if (straining) 1f else 0f, tween(200), label = "strain")
     val look by animateOffsetAsState(eyeOffset, tween(120), label = "look")
 
-    Canvas(modifier.semantics { contentDescription = "Iron Owl" }) {
+    Canvas(modifier.semantics { contentDescription = "Iron Hoot" }) {
         val s = min(size.width / 120f, size.height / 124f)
         translate((size.width - 120f * s) / 2f, (size.height - 124f * s) / 2f) {
             scale(s, s, pivot = Offset.Zero) {

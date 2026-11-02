@@ -73,7 +73,7 @@ class OverlayManager(
     private fun compose(content: @Composable () -> Unit): ComposeView =
         ComposeView(service).apply {
             owner.attach(this)
-            setContent { ScrollScopeTheme(content) }
+            setContent { ScrollScopeTheme(content = content) }
         }
 
     fun setCount(count: Int, limit: Int) {

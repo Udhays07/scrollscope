@@ -92,7 +92,7 @@ fun SettingsScreen(trackingOn: Boolean, onOpenDebug: () -> Unit) {
     Column(Modifier.verticalScroll(rememberScrollState())) {
         HootTopBar("Settings") { StatusChip(trackingOn) }
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            IronSettingsCard()
+            OwlModeSection()
             Group {
                 Item(Icons.Rounded.TrackChanges, "Daily limit") {
                     Row(
@@ -113,7 +113,7 @@ fun SettingsScreen(trackingOn: Boolean, onOpenDebug: () -> Unit) {
                 }
             }
             Group {
-                Item(Icons.Rounded.Visibility, "Floating Hoot") {
+                Item(Icons.Rounded.Visibility, if (s.ironEnabled) "Floating Iron Hoot" else "Floating Hoot") {
                     Switch(s.bubbleEnabled, onCheckedChange = { v -> update { it.copy(bubbleEnabled = v) } })
                 }
                 Divider()
