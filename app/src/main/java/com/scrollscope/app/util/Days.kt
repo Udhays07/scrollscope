@@ -33,6 +33,19 @@ object Format {
         return if (h > 0) "${h}h ${m}m" else "${m}m"
     }
 
+    /** "4:05" from a millisecond span. */
+    fun mmss(ms: Long): String {
+        val total = (ms.coerceAtLeast(0) + 999) / 1000
+        return "${total / 60}:${(total % 60).toString().padStart(2, '0')}"
+    }
+
+    /** "10:00 AM"; hour 24 reads as midnight. */
+    fun clock(hour: Int): String {
+        val h = hour % 24
+        val shown = if (h % 12 == 0) 12 else h % 12
+        return "$shown:00 ${if (h < 12) "AM" else "PM"}"
+    }
+
     fun hour12(hour: Int): String = when {
         hour == 0 -> "12 AM"
         hour < 12 -> "$hour AM"

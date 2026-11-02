@@ -92,6 +92,7 @@ fun SettingsScreen(trackingOn: Boolean, onOpenDebug: () -> Unit) {
     Column(Modifier.verticalScroll(rememberScrollState())) {
         HootTopBar("Settings") { StatusChip(trackingOn) }
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            IronSettingsCard()
             Group {
                 Item(Icons.Rounded.TrackChanges, "Daily limit") {
                     Row(

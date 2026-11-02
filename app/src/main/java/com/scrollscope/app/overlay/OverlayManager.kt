@@ -2,6 +2,9 @@ package com.scrollscope.app.overlay
 
 import android.accessibilityservice.AccessibilityService
 import android.graphics.PixelFormat
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -18,12 +21,18 @@ interface OverlayActions {
     fun openApp()
     fun takeBreak()
     fun keepWatching()
+    fun closeLocked()
+    fun passEarned()
 }
 
-data class BubbleState(val count: Int = 0, val limit: Int = 200)
+/** Iron Owl takes over the bubble near the limit: minutes left, or the pass countdown. */
+data class IronBadge(val text: String, val hot: Boolean, val granted: Boolean = false)
+
+data class BubbleState(val count: Int = 0, val limit: Int = 200, val iron: IronBadge? = null)
 
 /**
- * Draws Hoot's bubble, its menu and the mindful-pause dialog.
+ * Draws Hoot's bubble, its menu, the mindful-pause dialog, and Iron Owl's
+ * lock screen and heads-up banner.
  * Uses TYPE_ACCESSIBILITY_OVERLAY, which an accessibility service may add
  * without the separate "Display over other apps" permission.
  */
@@ -42,6 +51,12 @@ class OverlayManager(
     private var bubble: View? = null
     private var menu: View? = null
     private var pause: View? = null
+    private var lock: View? = null
+    private var banner: View? = null
+    private val main = Handler(Looper.getMainLooper())
+    private val hideBannerRunnable = Runnable { hideBanner() }
+    val lockInfo = MutableStateFlow<LockInfo?>(null)
+    val lockShowing get() = lock != null
     private var bubbleParams: WindowManager.LayoutParams? = null
     private var snoozedUntil = 0L
 
@@ -62,14 +77,18 @@ class OverlayManager(
         }
 
     fun setCount(count: Int, limit: Int) {
-        state.value = BubbleState(count, limit)
+        state.value = state.value.copy(count = count, limit = limit)
+    }
+
+    fun setIron(badge: IronBadge?) {
+        if (state.value.iron != badge) state.value = state.value.copy(iron = badge)
     }
 
     // ---- Bubble ----
 
     fun showBubble() {
         val s = ScrollScopeApp.instance.settingsState.value
-        if (!s.bubbleEnabled || System.currentTimeMillis() < snoozedUntil || bubble != null) return
+        if (!s.bubbleEnabled || System.currentTimeMillis() < snoozedUntil || bubble != null || lock != null) return
         val p = params(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT).apply {
             x = if (s.bubbleX >= 0) s.bubbleX else screenW - dp(92)
             y = s.bubbleY
@@ -144,7 +163,7 @@ class OverlayManager(
     // ---- Mindful pause ----
 
     fun showPause(count: Int) {
-        if (pause != null) return
+        if (pause != null || lock != null) return
         val v = compose {
             PauseContent(
                 count = count,
@@ -161,9 +180,58 @@ class OverlayManager(
         pause = null
     }
 
+    // ---- Iron Owl ----
+
+    fun showLock(info: LockInfo) {
+        lockInfo.value = info
+        if (lock != null) return
+        hideBubble()
+        hidePause()
+        hideBanner()
+        val v = compose {
+            LockContent(lockInfo, onClose = { actions.closeLocked() }, onPassEarned = { actions.passEarned() })
+        }
+        val lp = params(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT).apply {
+            // Cover the cutout band too, so the blocked app can't peek through above the shutters.
+            if (Build.VERSION.SDK_INT >= 28) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
+        runCatching { wm.addView(v, lp) }.onSuccess { lock = v }
+    }
+
+    fun hideLock() {
+        lock?.let { runCatching { wm.removeView(it) } }
+        lock = null
+        lockInfo.value = null
+    }
+
+    fun showBanner(title: String, body: String) {
+        if (lock != null) return
+        hideBanner()
+        val v = compose { BannerContent(title, body, onDismiss = ::hideBanner) }
+        val bp = params(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT)
+        runCatching { wm.addView(v, bp) }.onSuccess {
+            banner = v
+            main.postDelayed(hideBannerRunnable, BANNER_MS)
+        }
+    }
+
+    fun hideBanner() {
+        main.removeCallbacks(hideBannerRunnable)
+        banner?.let { runCatching { wm.removeView(it) } }
+        banner = null
+    }
+
     fun destroy() {
         hideBubble()
         hidePause()
+        hideLock()
+        hideBanner()
         owner.destroy()
+    }
+
+    private companion object {
+        const val BANNER_MS = 6500L
     }
 }

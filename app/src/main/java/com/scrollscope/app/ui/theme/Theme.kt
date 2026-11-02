@@ -53,6 +53,27 @@ object HootColors {
     val Heat = listOf(Color(0xFF1C1C1C), Color(0xFF3A2414), Color(0xFF7A4524), Color(0xFFC96A33))
 }
 
+/** Iron Owl's material: gunmetal steel with an ember accent, and a navy cast for the night lock. */
+object IronColors {
+    val I950 = Color(0xFF0F1114)
+    val I900 = Color(0xFF15181C)
+    val I800 = Color(0xFF23282E)
+    val I700 = Color(0xFF353B43)
+    val I600 = Color(0xFF4E5761)
+    val I500 = Color(0xFF6B7580)
+    val I400 = Color(0xFF8C97A3)
+    val I300 = Color(0xFFA3AEBA)
+    val I200 = Color(0xFFC9D2DB)
+    val Wing = Color(0xFF5A636E)
+    val Ember = Color(0xFFFF5A2E)
+    val EmberText = Color(0xFFFF8A65)
+    val EmberHot = Color(0xFFFFD08A)
+    val NightSlat = Color(0xFF141A24)
+    val NightGap = Color(0xFF0B0F16)
+    val NightEdge = Color(0xFF1C2431)
+    val Moon = Color(0xFFD5E3FF)
+}
+
 @Composable
 fun ScrollScopeTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = HootScheme, content = content)
