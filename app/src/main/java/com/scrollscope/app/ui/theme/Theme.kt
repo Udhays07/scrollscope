@@ -1,9 +1,14 @@
 package com.scrollscope.app.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 /** True-black Material 3 scheme; amber is kept for Hoot and highlights only. */
 val HootScheme = darkColorScheme(
@@ -53,7 +58,7 @@ object HootColors {
     val Heat = listOf(Color(0xFF1C1C1C), Color(0xFF3A2414), Color(0xFF7A4524), Color(0xFFC96A33))
 }
 
-/** Iron Owl's material: gunmetal steel with an ember accent, and a navy cast for the night lock. */
+/** Iron Hoot's material: gunmetal steel with an ember accent, and a navy cast for the night lock. */
 object IronColors {
     val I950 = Color(0xFF0F1114)
     val I900 = Color(0xFF15181C)
@@ -74,7 +79,56 @@ object IronColors {
     val Moon = Color(0xFFD5E3FF)
 }
 
+/** Iron Hoot re-skins the whole app: steel replaces amber, surfaces take a gunmetal cast. */
+val IronScheme = darkColorScheme(
+    primary = IronColors.I200,
+    onPrimary = IronColors.I900,
+    primaryContainer = IronColors.I700,
+    onPrimaryContainer = Color.White,
+    secondary = IronColors.I300,
+    onSecondary = IronColors.I900,
+    secondaryContainer = IronColors.I700,
+    onSecondaryContainer = Color.White,
+    tertiary = Color(0xFFA6C8FF),
+    onTertiary = Color(0xFF00315F),
+    tertiaryContainer = Color(0xFF1A2433),
+    onTertiaryContainer = Color(0xFFD5E3FF),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+    errorContainer = Color(0xFF5C1E1A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    background = Color(0xFF07080A),
+    onBackground = Color(0xFFEDEDED),
+    surface = Color(0xFF07080A),
+    onSurface = Color(0xFFEDEDED),
+    surfaceVariant = IronColors.I800,
+    onSurfaceVariant = IronColors.I300,
+    outline = IronColors.I600,
+    outlineVariant = IronColors.I800,
+    inverseSurface = IronColors.I200,
+    inverseOnSurface = IronColors.I950,
+    inversePrimary = IronColors.I600,
+    surfaceContainerLowest = Color(0xFF07080A),
+    surfaceContainerLow = Color(0xFF0E1013),
+    surfaceContainer = Color(0xFF13161A),
+    surfaceContainerHigh = IronColors.I800,
+    surfaceContainerHighest = Color(0xFF2B3138),
+)
+
+private val IronType = Typography().run {
+    copy(
+        titleLarge = titleLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = (-0.2).sp),
+        titleMedium = titleMedium.copy(fontWeight = FontWeight.Bold),
+    )
+}
+
+/** True while Iron Hoot is the app's mode; drives the avatar, status chip and theme. */
+val LocalIron = staticCompositionLocalOf { false }
+
 @Composable
-fun ScrollScopeTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = HootScheme, content = content)
+fun ScrollScopeTheme(iron: Boolean = false, content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalIron provides iron) {
+        if (iron) MaterialTheme(colorScheme = IronScheme, typography = IronType, content = content)
+        else MaterialTheme(colorScheme = HootScheme, content = content)
+    }
 }

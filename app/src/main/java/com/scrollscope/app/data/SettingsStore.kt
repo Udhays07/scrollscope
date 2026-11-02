@@ -21,7 +21,7 @@ data class AppSettings(
     val retentionDays: Int = 90,
     val bubbleX: Int = -1,
     val bubbleY: Int = 320,
-    val ironEnabled: Boolean = true,
+    val ironEnabled: Boolean = false,
     val reelsLimitMin: Int = 60,
     val shortsLimitMin: Int = 60,
     val openHour: Int = 10,

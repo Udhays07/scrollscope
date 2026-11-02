@@ -250,7 +250,7 @@ fun LockContent(state: StateFlow<LockInfo?>, onClose: () -> Unit, onPassEarned: 
                             scaleX = d.sx; scaleY = d.sy; alpha = d.alpha
                             transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 1f)
                         }
-                        .semantics { contentDescription = if (canPass) "Iron Owl. Press and hold for 10 seconds to earn a 5-minute pass." else "Iron Owl" }
+                        .semantics { contentDescription = if (canPass) "Iron Hoot. Press and hold for 10 seconds to earn a 5-minute pass." else "Iron Hoot" }
                         .pointerInput(canPass, night) {
                             awaitEachGesture {
                                 awaitFirstDown(requireUnconsumed = false)

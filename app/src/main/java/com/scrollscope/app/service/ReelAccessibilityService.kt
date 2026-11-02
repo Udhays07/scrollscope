@@ -291,7 +291,7 @@ class ReelAccessibilityService : AccessibilityService(), OverlayActions {
 
     override fun closeLocked() {
         performGlobalAction(GLOBAL_ACTION_HOME)
-        leave("closed by Iron Owl", immediate = true)
+        leave("closed by Iron Hoot", immediate = true)
     }
 
     override fun passEarned() {
