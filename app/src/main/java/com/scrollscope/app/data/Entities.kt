@@ -32,4 +32,5 @@ data class ReelEvent(
 
 data class AppCount(val app: String, val count: Int)
 data class DayStat(val day: String, val count: Int, val dwellMs: Long)
+data class DayCount(val day: String, val count: Int)
 data class HourStat(val day: String, val hour: Int, val count: Int)

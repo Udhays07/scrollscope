@@ -55,12 +55,12 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val CardBg = Color(0xFF2E1D13)
-private val CardInk = Color(0xFFFFEDE4)
-private val CardSub = Color(0xFFE8CDBE)
-private val CardTile = Color(0xFF3B2516)
+private val CardBg = Color(0xFF161616)
+private val CardInk = Color(0xFFF5F5F5)
+private val CardSub = Color(0xFFB0B0B0)
+private val CardTile = Color(0xFF1C1C1C)
 private val Amber = Color(0xFFFFB68A)
-private val BarMuted = Color(0xFF5D3A22)
+private val BarMuted = Color(0xFF33231A)
 
 @Composable
 fun ShareDialog(ui: TodayUi, onDismiss: () -> Unit) {
@@ -106,12 +106,12 @@ fun ShareCard(ui: TodayUi, week: TrendsUi) {
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OwlAvatar(Mood.Awake, 26.dp, backdrop = Color(0xFF1A120E))
+            OwlAvatar(Mood.Awake, 26.dp, backdrop = Color(0xFF000000), animated = false)
             Text("ScrollScope", color = CardSub, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, modifier = Modifier.weight(1f))
             Text(date, color = CardSub, fontSize = 13.sp)
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Owl(mood, Modifier.size(112.dp))
+            Owl(mood, Modifier.size(112.dp), animated = false)
             Column {
                 Text("${ui.count}", color = Amber, fontSize = 68.sp, fontWeight = FontWeight.Bold, lineHeight = 68.sp)
                 Text("reels today", color = CardInk, fontSize = 16.sp, fontWeight = FontWeight.Medium)

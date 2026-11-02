@@ -34,6 +34,9 @@ interface StatsDao {
     @Query("SELECT day, COUNT(*) AS count, COALESCE(SUM(dwellMs), 0) AS dwellMs FROM reel_events WHERE day >= :from GROUP BY day ORDER BY day")
     fun dailyStats(from: String): Flow<List<DayStat>>
 
+    @Query("SELECT day, COUNT(*) AS count FROM sessions WHERE day >= :from AND reelCount > 0 GROUP BY day")
+    fun sessionCounts(from: String): Flow<List<DayCount>>
+
     @Query("SELECT day, hour, COUNT(*) AS count FROM reel_events WHERE day >= :from GROUP BY day, hour")
     fun hourStats(from: String): Flow<List<HourStat>>
 

@@ -16,7 +16,6 @@ import java.time.ZoneId
 
 interface OverlayActions {
     fun openApp()
-    fun dumpTree()
     fun takeBreak()
     fun keepWatching()
 }
@@ -72,7 +71,7 @@ class OverlayManager(
         val s = ScrollScopeApp.instance.settingsState.value
         if (!s.bubbleEnabled || System.currentTimeMillis() < snoozedUntil || bubble != null) return
         val p = params(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT).apply {
-            x = if (s.bubbleX >= 0) s.bubbleX else screenW - dp(84)
+            x = if (s.bubbleX >= 0) s.bubbleX else screenW - dp(92)
             y = s.bubbleY
         }
         val v = compose {
@@ -98,8 +97,8 @@ class OverlayManager(
     private fun dragBy(dx: Float, dy: Float) {
         val v = bubble ?: return
         val p = bubbleParams ?: return
-        p.x = (p.x + dx.toInt()).coerceIn(0, screenW - dp(64))
-        p.y = (p.y + dy.toInt()).coerceIn(0, screenH - dp(80))
+        p.x = (p.x + dx.toInt()).coerceIn(0, screenW - dp(80))
+        p.y = (p.y + dy.toInt()).coerceIn(0, screenH - dp(112))
         runCatching { wm.updateViewLayout(v, p) }
     }
 
@@ -115,7 +114,7 @@ class OverlayManager(
         if (menu != null) return
         val p = bubbleParams ?: return
         val anchorX = p.x
-        val anchorY = p.y + dp(80)
+        val anchorY = p.y + dp(112)
         val v = compose {
             MenuContent(
                 anchorXpx = anchorX,
@@ -125,7 +124,6 @@ class OverlayManager(
                     snoozedUntil = System.currentTimeMillis() + 10 * 60_000
                     hideBubble()
                 },
-                onDump = { hideMenu(); actions.dumpTree() },
                 onOpenApp = { hideMenu(); actions.openApp() },
                 onHideToday = {
                     snoozedUntil = LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault())

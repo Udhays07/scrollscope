@@ -44,7 +44,7 @@ import com.scrollscope.app.ui.theme.HootColors
 import com.scrollscope.app.util.Format
 
 private val HeatLevels = listOf(
-    Color(0xFF322823), Color(0xFF4D3020), Color(0xFF7A4524), Color(0xFFB8642E), Color(0xFFFFB68A),
+    Color(0xFF1C1C1C), Color(0xFF3A2414), Color(0xFF7A4524), Color(0xFFB8642E), Color(0xFFFFB68A),
 )
 
 @Composable
