@@ -73,7 +73,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.scrollscope.app.ui.components.Mood
+import com.scrollscope.app.ui.components.IronOwl
+import com.scrollscope.app.ui.components.IronPose
 import com.scrollscope.app.ui.components.Owl
+import com.scrollscope.app.ui.theme.IronColors
 import com.scrollscope.app.ui.theme.HootColors
 import kotlinx.coroutines.flow.StateFlow
 
@@ -88,7 +91,10 @@ fun BubbleContent(
     val motion = rememberMotionEnabled()
     val pct = if (s.limit > 0) s.count.toFloat() / s.limit else 0f
     val cs = MaterialTheme.colorScheme
+    val iron = s.iron
     val (ring, onRing) = when {
+        iron != null && iron.hot -> IronColors.Ember to IronColors.I950
+        iron != null -> IronColors.I300 to IronColors.I950
         pct >= 1f -> cs.error to cs.onError
         pct >= 0.8f -> HootColors.Amber to HootColors.OnAmber
         else -> cs.primary to cs.onPrimary
@@ -143,7 +149,7 @@ fun BubbleContent(
             )
         }
         Box(Modifier.align(Alignment.BottomCenter).size(width = 80.dp, height = 88.dp)) {
-            if (motion && pct >= 0.8f) {
+            if (motion && (pct >= 0.8f || iron?.hot == true)) {
                 Canvas(Modifier.size(80.dp)) {
                     val base = 32.dp.toPx()
                     val r = base + pulse * (if (pct >= 1f) 8.dp.toPx() else 5.dp.toPx())
@@ -156,10 +162,13 @@ fun BubbleContent(
                     .padding(top = 8.dp)
                     .size(64.dp)
                     .clip(CircleShape)
-                    .background(HootColors.OwlBackdrop)
+                    .background(if (iron != null) IronColors.I900 else HootColors.OwlBackdrop)
                     .border(3.dp, ring, CircleShape),
                 contentAlignment = Alignment.Center,
-            ) { Owl(mood, Modifier.size(46.dp)) }
+            ) {
+                if (iron != null) IronOwl(Modifier.size(48.dp), pose = if (iron.granted) IronPose.Granted else IronPose.Guard)
+                else Owl(mood, Modifier.size(46.dp))
+            }
             Box(
                 Modifier
                     .align(Alignment.BottomCenter)
@@ -168,7 +177,7 @@ fun BubbleContent(
                     .background(ring)
                     .padding(horizontal = 8.dp, vertical = 2.dp),
             ) {
-                Text("${s.count}", color = onRing, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(iron?.text ?: "${s.count}", color = onRing, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

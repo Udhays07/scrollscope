@@ -105,6 +105,8 @@ fun TodayScreen(trackingOn: Boolean) {
                 }
             }
 
+            IronBudgetCard()
+
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 AppCard(Icons.Rounded.Movie, ui.byApp[Apps.INSTAGRAM] ?: 0, "Reels", cs.primary, cs.primaryContainer, Modifier.weight(1f))
                 AppCard(Icons.Rounded.SmartDisplay, ui.byApp[Apps.YOUTUBE] ?: 0, "Shorts", cs.tertiary, cs.tertiaryContainer, Modifier.weight(1f))

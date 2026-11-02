@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import com.scrollscope.app.data.AppDatabase
 import com.scrollscope.app.data.AppSettings
 import com.scrollscope.app.data.SettingsStore
+import com.scrollscope.app.iron.IronStore
 import com.scrollscope.app.work.DailySummaryWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +22,8 @@ class ScrollScopeApp : Application() {
         private set
     lateinit var settingsState: StateFlow<AppSettings>
         private set
+    lateinit var iron: IronStore
+        private set
 
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -30,6 +33,7 @@ class ScrollScopeApp : Application() {
         db = AppDatabase.build(this)
         settings = SettingsStore(this)
         settingsState = settings.flow.stateIn(appScope, SharingStarted.Eagerly, AppSettings())
+        iron = IronStore(this)
 
         getSystemService(NotificationManager::class.java).createNotificationChannel(
             NotificationChannel(CHANNEL_SUMMARY, "Daily summary", NotificationManager.IMPORTANCE_DEFAULT)

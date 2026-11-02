@@ -21,6 +21,11 @@ data class AppSettings(
     val retentionDays: Int = 90,
     val bubbleX: Int = -1,
     val bubbleY: Int = 320,
+    val ironEnabled: Boolean = true,
+    val reelsLimitMin: Int = 60,
+    val shortsLimitMin: Int = 60,
+    val openHour: Int = 10,
+    val closeHour: Int = 23,
 )
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
@@ -37,6 +42,11 @@ class SettingsStore(private val context: Context) {
         val retention = intPreferencesKey("retention_days")
         val bx = intPreferencesKey("bubble_x")
         val by = intPreferencesKey("bubble_y")
+        val iron = booleanPreferencesKey("iron_enabled")
+        val reelsMin = intPreferencesKey("iron_reels_min")
+        val shortsMin = intPreferencesKey("iron_shorts_min")
+        val open = intPreferencesKey("iron_open_hour")
+        val close = intPreferencesKey("iron_close_hour")
     }
 
     private val d = AppSettings()
@@ -52,6 +62,11 @@ class SettingsStore(private val context: Context) {
         retentionDays = p[K.retention] ?: d.retentionDays,
         bubbleX = p[K.bx] ?: d.bubbleX,
         bubbleY = p[K.by] ?: d.bubbleY,
+        ironEnabled = p[K.iron] ?: d.ironEnabled,
+        reelsLimitMin = p[K.reelsMin] ?: d.reelsLimitMin,
+        shortsLimitMin = p[K.shortsMin] ?: d.shortsLimitMin,
+        openHour = p[K.open] ?: d.openHour,
+        closeHour = p[K.close] ?: d.closeHour,
     )
 
     private fun write(p: MutablePreferences, s: AppSettings) {
@@ -65,6 +80,11 @@ class SettingsStore(private val context: Context) {
         p[K.retention] = s.retentionDays
         p[K.bx] = s.bubbleX
         p[K.by] = s.bubbleY
+        p[K.iron] = s.ironEnabled
+        p[K.reelsMin] = s.reelsLimitMin
+        p[K.shortsMin] = s.shortsLimitMin
+        p[K.open] = s.openHour
+        p[K.close] = s.closeHour
     }
 
     val flow: Flow<AppSettings> = context.dataStore.data.map { read(it) }
