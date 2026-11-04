@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.scrollscope.app.iron.TimerStage
 import com.scrollscope.app.util.rememberMotionEnabled
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
@@ -93,7 +94,7 @@ fun BubbleContent(
     val cs = MaterialTheme.colorScheme
     val iron = s.iron
     val (ring, onRing) = when {
-        iron != null && iron.hot -> IronColors.Ember to IronColors.I950
+        iron != null && (iron.stage == TimerStage.Critical || iron.stage == TimerStage.Pass) -> IronColors.Ember to IronColors.I950
         iron != null -> IronColors.I300 to IronColors.I950
         pct >= 1f -> cs.error to cs.onError
         pct >= 0.8f -> HootColors.Amber to HootColors.OnAmber
@@ -166,7 +167,7 @@ fun BubbleContent(
                     .border(3.dp, ring, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                if (iron != null) IronOwl(Modifier.size(48.dp), pose = if (iron.granted) IronPose.Granted else IronPose.Guard)
+                if (iron != null) IronOwl(Modifier.size(48.dp), pose = if (iron.stage == TimerStage.Pass) IronPose.Granted else IronPose.Guard)
                 else Owl(mood, Modifier.size(46.dp))
             }
             Box(

@@ -14,7 +14,7 @@ import com.scrollscope.app.MainActivity
 import com.scrollscope.app.ScrollScopeApp
 import com.scrollscope.app.data.Apps
 import com.scrollscope.app.iron.IronRules
-import com.scrollscope.app.overlay.IronBadge
+import com.scrollscope.app.iron.IronTimer
 import com.scrollscope.app.overlay.LockInfo
 import com.scrollscope.app.overlay.OverlayActions
 import com.scrollscope.app.overlay.OverlayManager
@@ -182,11 +182,7 @@ class ReelAccessibilityService : AccessibilityService(), OverlayActions {
         val left = limit - watched
         val leftMin = ((left + 59_999) / 60_000).coerceAtLeast(1)
         overlay.setIron(
-            when {
-                passActive -> IronBadge(Format.mmss(snap.passUntil - wall), hot = true, granted = true)
-                left <= IronRules.IRON_BUBBLE_MS -> IronBadge("${leftMin}m", hot = left <= IronRules.WARN_MS)
-                else -> null
-            }
+            IronTimer.reading(left, limit, (snap.passUntil - wall).takeIf { passActive }, IronRules.feedLabel(pkg))
         )
         if (inPlayer && !passActive && left <= IronRules.WARN_MS && app.iron.markWarned("limit_$pkg")) {
             overlay.showBanner(
@@ -215,10 +211,8 @@ class ReelAccessibilityService : AccessibilityService(), OverlayActions {
         if (found) {
             enteredPlayerAt = now
             DebugLog.log("WINDOW", pkg, "player ✓ ${ReelDetector.lastMatch}")
-            if (track) {
-                tracker.onEnterPlayer()
-                overlay.showBubble()
-            }
+            if (track) tracker.onEnterPlayer()
+            if (track || app.settingsState.value.ironEnabled) overlay.showBubble()
         } else {
             DebugLog.log("WINDOW", pkg, "left player")
             overlay.hideBubble()

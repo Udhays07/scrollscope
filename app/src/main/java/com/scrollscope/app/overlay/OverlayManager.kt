@@ -11,6 +11,7 @@ import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import com.scrollscope.app.ScrollScopeApp
+import com.scrollscope.app.iron.TimerReading
 import com.scrollscope.app.ui.theme.ScrollScopeTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -25,10 +26,7 @@ interface OverlayActions {
     fun passEarned()
 }
 
-/** Iron Owl takes over the bubble near the limit: minutes left, or the pass countdown. */
-data class IronBadge(val text: String, val hot: Boolean, val granted: Boolean = false)
-
-data class BubbleState(val count: Int = 0, val limit: Int = 200, val iron: IronBadge? = null)
+data class BubbleState(val count: Int = 0, val limit: Int = 200, val iron: TimerReading? = null)
 
 /**
  * Draws Hoot's bubble, its menu, the mindful-pause dialog, and Iron Owl's
@@ -80,8 +78,8 @@ class OverlayManager(
         state.value = state.value.copy(count = count, limit = limit)
     }
 
-    fun setIron(badge: IronBadge?) {
-        if (state.value.iron != badge) state.value = state.value.copy(iron = badge)
+    fun setIron(reading: TimerReading?) {
+        if (state.value.iron != reading) state.value = state.value.copy(iron = reading)
     }
 
     // ---- Bubble ----
