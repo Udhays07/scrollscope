@@ -114,7 +114,9 @@ class OverlayManager(
     private fun dragBy(dx: Float, dy: Float) {
         val v = bubble ?: return
         val p = bubbleParams ?: return
-        p.x = (p.x + dx.toInt()).coerceIn(0, screenW - dp(80))
+        // The Iron timer badge can make the bubble wider than 80 dp; clamp by its measured width.
+        val w = if (v.width > 0) v.width else dp(80)
+        p.x = (p.x + dx.toInt()).coerceIn(0, (screenW - w).coerceAtLeast(0))
         p.y = (p.y + dy.toInt()).coerceIn(0, screenH - dp(112))
         runCatching { wm.updateViewLayout(v, p) }
     }

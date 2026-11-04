@@ -21,6 +21,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.scrollscope.app.iron.TimerStage
 import com.scrollscope.app.util.rememberMotionEnabled
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.material3.LocalTextStyle
+import kotlin.math.min
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -81,6 +87,20 @@ import com.scrollscope.app.ui.theme.IronColors
 import com.scrollscope.app.ui.theme.HootColors
 import kotlinx.coroutines.flow.StateFlow
 
+/** Badge (and ring arc) colors per Iron timer stage: fill to text. */
+private fun stageColors(stage: TimerStage): Pair<Color, Color> = when (stage) {
+    TimerStage.Calm -> IronColors.I300 to IronColors.I950
+    TimerStage.Low -> HootColors.Amber to HootColors.OnAmber
+    TimerStage.Critical -> IronColors.Ember to IronColors.I950
+    TimerStage.Pass -> IronColors.EmberHot to IronColors.I950
+}
+
+private fun stagePose(stage: TimerStage): IronPose = when (stage) {
+    TimerStage.Calm -> IronPose.Watch
+    TimerStage.Low, TimerStage.Critical -> IronPose.Guard
+    TimerStage.Pass -> IronPose.Granted
+}
+
 @Composable
 fun BubbleContent(
     state: StateFlow<BubbleState>,
@@ -94,37 +114,56 @@ fun BubbleContent(
     val cs = MaterialTheme.colorScheme
     val iron = s.iron
     val (ring, onRing) = when {
-        iron != null && (iron.stage == TimerStage.Critical || iron.stage == TimerStage.Pass) -> IronColors.Ember to IronColors.I950
-        iron != null -> IronColors.I300 to IronColors.I950
+        iron != null -> stageColors(iron.stage)
         pct >= 1f -> cs.error to cs.onError
         pct >= 0.8f -> HootColors.Amber to HootColors.OnAmber
         else -> cs.primary to cs.onPrimary
     }
     val mood = if (pct >= 0.8f) Mood.Wide else Mood.Awake
 
-    // Badge pops and a "+1" floats up whenever the count goes up.
+    // Badge pops and a "+1" floats up whenever the count goes up (not in Iron mode).
     val pop = remember { Animatable(1f) }
     val plus = remember { Animatable(1f) }
     var lastCount by remember { mutableIntStateOf(s.count) }
     LaunchedEffect(s.count) {
-        if (s.count > lastCount && motion) {
+        if (s.count > lastCount && motion && s.iron == null) {
             launch { pop.snapTo(1.35f); pop.animateTo(1f, spring(dampingRatio = 0.4f)) }
             launch { plus.snapTo(0f); plus.animateTo(1f, tween(1400, easing = LinearEasing)) }
         }
         lastCount = s.count
     }
 
-    // Ring glows near the limit and pulses once over it.
+    // Iron: one steam puff on a transition into Critical (not when the bubble appears already Critical).
+    val stage = iron?.stage
+    var fumeKey by remember { mutableIntStateOf(0) }
+    var prevStage by remember { mutableStateOf(stage) }
+    LaunchedEffect(stage) {
+        if (stage == null) fumeKey = 0
+        else if (stage == TimerStage.Critical && prevStage != null && prevStage != TimerStage.Critical) fumeKey++
+        prevStage = stage
+    }
+
+    // Ring glows near the limit and pulses once over it. In Iron mode it pulses only when Critical.
+    val hot = if (iron != null) iron.stage == TimerStage.Critical else pct >= 1f
+    val showPulse = motion && (if (iron != null) iron.stage == TimerStage.Critical else pct >= 0.8f)
     val pulseT = rememberInfiniteTransition(label = "pulse")
     val pulse by pulseT.animateFloat(
         0f, 1f,
-        infiniteRepeatable(tween(if (pct >= 1f) 1600 else 2400, easing = LinearEasing)),
+        infiniteRepeatable(tween(if (hot) 1600 else 2400, easing = LinearEasing)),
         label = "pulse",
     )
 
+    val fontScale = LocalDensity.current.fontScale
+    val badgeSize = if (iron != null) (13f * min(fontScale, 1.3f) / fontScale).sp else 13.sp
+
     Box(
         Modifier
-            .size(width = 80.dp, height = 112.dp)
+            .widthIn(min = 80.dp)
+            .height(112.dp)
+            .clearAndSetSemantics {
+                contentDescription = iron?.spoken ?: "${s.count} reels today"
+                onClick(label = "Open Hoot menu") { onTap(); true }
+            }
             .pointerInput(Unit) {
                 detectDragGestures(onDragEnd = onDragEnd) { change, drag ->
                     change.consume()
@@ -133,7 +172,7 @@ fun BubbleContent(
             }
             .pointerInput(Unit) { detectTapGestures(onTap = { onTap() }, onLongPress = { onTap() }) },
     ) {
-        if (plus.value < 1f) {
+        if (iron == null && plus.value < 1f) {
             val q = plus.value
             val alpha = if (q < 0.15f) q / 0.15f else if (q < 0.7f) 1f else 1f - (q - 0.7f) / 0.3f
             Text(
@@ -149,36 +188,80 @@ fun BubbleContent(
                 fontWeight = FontWeight.Bold,
             )
         }
-        Box(Modifier.align(Alignment.BottomCenter).size(width = 80.dp, height = 88.dp)) {
-            if (motion && (pct >= 0.8f || (iron?.stage == TimerStage.Critical || iron?.stage == TimerStage.Pass))) {
-                Canvas(Modifier.size(80.dp)) {
+        Box(Modifier.align(Alignment.BottomCenter).widthIn(min = 80.dp).height(88.dp)) {
+            if (showPulse) {
+                Canvas(Modifier.align(Alignment.TopCenter).size(80.dp)) {
                     val base = 32.dp.toPx()
-                    val r = base + pulse * (if (pct >= 1f) 8.dp.toPx() else 5.dp.toPx())
+                    val r = base + pulse * (if (hot) 8.dp.toPx() else 5.dp.toPx())
                     drawCircle(ring.copy(alpha = (1f - pulse) * 0.55f), r, center, style = Stroke(3.dp.toPx()))
                 }
             }
-            Box(
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 8.dp)
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(if (iron != null) IronColors.I900 else HootColors.OwlBackdrop)
-                    .border(3.dp, ring, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (iron != null) IronOwl(Modifier.size(48.dp), pose = if (iron.stage == TimerStage.Pass) IronPose.Granted else IronPose.Guard)
-                else Owl(mood, Modifier.size(46.dp))
+            if (iron != null) {
+                Box(
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 8.dp)
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(IronColors.I900),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    IronOwl(Modifier.size(48.dp), pose = stagePose(iron.stage), fumeKey = fumeKey)
+                }
+                TimerRing(
+                    fraction = iron.fractionLeft,
+                    color = ring,
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp).size(64.dp),
+                )
+            } else {
+                Box(
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 8.dp)
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(HootColors.OwlBackdrop)
+                        .border(3.dp, ring, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Owl(mood, Modifier.size(46.dp))
+                }
             }
-            Box(
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .scale(pop.value)
-                    .clip(RoundedCornerShape(11.dp))
-                    .background(ring)
-                    .padding(horizontal = 8.dp, vertical = 2.dp),
-            ) {
-                Text(iron?.text ?: "${s.count}", color = onRing, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            if (iron != null) {
+                Box(
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .widthIn(min = 56.dp)
+                        .clip(RoundedCornerShape(11.dp))
+                        .background(ring)
+                        .padding(horizontal = 8.dp, vertical = 2.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        iron.text,
+                        color = onRing,
+                        fontSize = badgeSize,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        softWrap = false,
+                        // Tabular digits so the countdown doesn't jiggle; line height capped with the font.
+                        style = LocalTextStyle.current.copy(
+                            fontFeatureSettings = "tnum",
+                            lineHeight = (badgeSize.value * 24f / 13f).sp,
+                        ),
+                    )
+                }
+            } else {
+                Box(
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .scale(pop.value)
+                        .clip(RoundedCornerShape(11.dp))
+                        .background(ring)
+                        .padding(horizontal = 8.dp, vertical = 2.dp),
+                ) {
+                    Text("${s.count}", color = onRing, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

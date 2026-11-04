@@ -44,8 +44,17 @@ import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 
-/** Guard: stern, ember eyes. Granted: visor lifted, Hoot's amber eyes. Night: visor lowered, slow blinks. */
-enum class IronPose { Guard, Granted, Night }
+/**
+ * Guard: stern, ember eyes. Granted: visor lifted, Hoot's amber eyes. Night: visor lowered, slow blinks.
+ * Watch: visor half lifted, amber eyes, no scan sweep (Iron timer bubble with plenty of time left).
+ */
+enum class IronPose { Guard, Granted, Night, Watch }
+
+private fun grantedLevel(pose: IronPose): Float = when (pose) {
+    IronPose.Granted -> 1f
+    IronPose.Watch -> 0.5f
+    else -> 0f
+}
 
 /**
  * Iron Owl: Hoot in armour, drawn on the same 120×124 grid as [Owl].
@@ -89,7 +98,7 @@ fun IronOwl(
     LaunchedEffect(pose) {
         if (pose == IronPose.Granted && motion) { delay(250); nod.snapTo(0f); nod.animateTo(1f, tween(700)) }
     }
-    val granted by animateFloatAsState(if (pose == IronPose.Granted) 1f else 0f, tween(450, easing = FastOutSlowInEasing), label = "granted")
+    val granted by animateFloatAsState(grantedLevel(pose), tween(450, easing = FastOutSlowInEasing), label = "granted")
     val night by animateFloatAsState(if (pose == IronPose.Night) 1f else 0f, tween(450), label = "night")
     val strain by animateFloatAsState(if (straining) 1f else 0f, tween(200), label = "strain")
     val look by animateOffsetAsState(eyeOffset, tween(120), label = "look")
@@ -99,7 +108,7 @@ fun IronOwl(
         translate((size.width - 120f * s) / 2f, (size.height - 124f * s) / 2f) {
             scale(s, s, pivot = Offset.Zero) {
                 if (!motion) {
-                    drawIron(IronFrame(granted = if (pose == IronPose.Granted) 1f else 0f, night = if (pose == IronPose.Night) 1f else 0f))
+                    drawIron(IronFrame(granted = grantedLevel(pose), night = if (pose == IronPose.Night) 1f else 0f))
                     return@scale
                 }
                 val wave = 0.5f - 0.5f * cos(2f * PI.toFloat() * breathP)
