@@ -2,7 +2,8 @@ name: Build APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'feature/**' ]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -23,6 +24,9 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Run unit tests
+        run: gradle :app:testDebugUnitTest --stacktrace
+
       - name: Build signed APK
         run: gradle :app:assembleDebug --stacktrace
 
@@ -35,6 +39,7 @@ jobs:
           path: ScrollScope.apk
 
       - name: Publish to the "latest" release
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
