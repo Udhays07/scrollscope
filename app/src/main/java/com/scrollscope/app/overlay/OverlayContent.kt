@@ -150,7 +150,7 @@ fun BubbleContent(
             )
         }
         Box(Modifier.align(Alignment.BottomCenter).size(width = 80.dp, height = 88.dp)) {
-            if (motion && (pct >= 0.8f || iron?.hot == true)) {
+            if (motion && (pct >= 0.8f || (iron?.stage == TimerStage.Critical || iron?.stage == TimerStage.Pass))) {
                 Canvas(Modifier.size(80.dp)) {
                     val base = 32.dp.toPx()
                     val r = base + pulse * (if (pct >= 1f) 8.dp.toPx() else 5.dp.toPx())
