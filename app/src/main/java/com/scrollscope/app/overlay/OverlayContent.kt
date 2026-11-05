@@ -155,13 +155,17 @@ fun BubbleContent(
 
     val fontScale = LocalDensity.current.fontScale
     val badgeSize = if (iron != null) (13f * min(fontScale, 1.3f) / fontScale).sp else 13.sp
+    // Iron mode is 8 dp taller and its badge uses a tight line height, so the badge sits below
+    // the ring (overlapping at most ~1 dp at the 1.3x font cap) and never hides the ring's end.
+    // Outside Iron mode the bubble keeps its original 80x112 dp size (Decision 6).
+    val innerH = if (iron != null) 96.dp else 88.dp
 
     Box(
         Modifier
             .widthIn(min = 80.dp)
-            .height(112.dp)
+            .height(innerH + 24.dp)
             .clearAndSetSemantics {
-                contentDescription = iron?.spoken ?: "${s.count} reels today"
+                contentDescription = iron?.spoken ?: if (s.count == 1) "1 reel today" else "${s.count} reels today"
                 onClick(label = "Open Hoot menu") { onTap(); true }
             }
             .pointerInput(Unit) {
@@ -188,7 +192,7 @@ fun BubbleContent(
                 fontWeight = FontWeight.Bold,
             )
         }
-        Box(Modifier.align(Alignment.BottomCenter).widthIn(min = 80.dp).height(88.dp)) {
+        Box(Modifier.align(Alignment.BottomCenter).widthIn(min = 80.dp).height(innerH)) {
             if (showPulse) {
                 Canvas(Modifier.align(Alignment.TopCenter).size(80.dp)) {
                     val base = 32.dp.toPx()
@@ -244,10 +248,11 @@ fun BubbleContent(
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         softWrap = false,
-                        // Tabular digits so the countdown doesn't jiggle; line height capped with the font.
+                        // Tabular digits so the countdown doesn't jiggle; a tight line height
+                        // (16/13 of the font, capped with it) keeps the badge below the ring.
                         style = LocalTextStyle.current.copy(
                             fontFeatureSettings = "tnum",
-                            lineHeight = (badgeSize.value * 24f / 13f).sp,
+                            lineHeight = (badgeSize.value * 16f / 13f).sp,
                         ),
                     )
                 }

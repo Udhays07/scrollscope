@@ -117,7 +117,9 @@ class OverlayManager(
         // The Iron timer badge can make the bubble wider than 80 dp; clamp by its measured width.
         val w = if (v.width > 0) v.width else dp(80)
         p.x = (p.x + dx.toInt()).coerceIn(0, (screenW - w).coerceAtLeast(0))
-        p.y = (p.y + dy.toInt()).coerceIn(0, screenH - dp(112))
+        // Iron mode makes the bubble taller (120 dp); clamp by its measured height.
+        val h = if (v.height > 0) v.height else dp(112)
+        p.y = (p.y + dy.toInt()).coerceIn(0, (screenH - h).coerceAtLeast(0))
         runCatching { wm.updateViewLayout(v, p) }
     }
 
@@ -133,7 +135,7 @@ class OverlayManager(
         if (menu != null) return
         val p = bubbleParams ?: return
         val anchorX = p.x
-        val anchorY = p.y + dp(112)
+        val anchorY = p.y + (bubble?.height?.takeIf { it > 0 } ?: dp(112))
         val v = compose {
             MenuContent(
                 anchorXpx = anchorX,
